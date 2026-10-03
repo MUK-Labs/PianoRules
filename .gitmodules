@@ -4,3 +4,6 @@
 [submodule "Gamelan"]
 	path = Library/Gamelan
 	url = git@github.com:AdrianArtacho/Rule-Gamelan.git
+[submodule "demo"]
+	path = demo
+	url = https://github.com/AdrianArtacho/PianoRules-demo.git
