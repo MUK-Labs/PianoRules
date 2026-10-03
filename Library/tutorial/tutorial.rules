@@ -1,0 +1,164 @@
+# Tutorial examples
+assets from "./assets/"
+
+
+section Any note
+
+when any note:
+  play +12
+
+
+section A specific note
+
+when note C4:
+  play G4
+
+section Dynamics as a trigger
+
+when any note velocity 90..127:
+  play +7 velocity 40
+
+
+section A specific chord
+
+when chord [C4 E4 G4] within 180ms:
+  play [D5 F#5 A5] velocity 60
+
+
+section Any newly played chord
+
+when chord played notes 3..6 within 170ms:
+  remember chord as harmony
+
+section Phrase endings
+
+when phrase ends after 900ms:
+  remember phrase as melody
+
+####
+
+section While a note is held
+
+while note C4 down every 180ms:
+  play +7 velocity input*0.6 for 80ms
+
+section While any note is held
+
+while any note down every 120ms:
+  play +12 velocity input*0.45 for 60ms
+
+#while any note down velocity 90..127 every 100ms:
+#  play -12 velocity 35 for 50ms
+
+
+
+section While a sequence is playing
+sequence answer:
+  play +12 for 160ms
+  wait 200ms
+  play +7 for 160ms
+
+when note D4:
+  play sequence answer
+
+while sequence answer playing every 220ms:
+  play -12 velocity 35 for 80ms
+
+
+section While musical memory exists
+
+while harmony exists every 80ms:
+  play random note from harmony velocity 20..40 for 60ms
+
+#while harmony exists every random 700ms..1.8s:
+#  play random note from harmony octave +2 velocity 18..34 for 420ms
+
+#####
+
+section After the beginning of a section
+
+after start 8s:
+  play [C3 G3 C4] velocity 48 for 700ms
+
+
+section Regular autonomous events
+
+every 3s:
+  play C5 velocity 40 for 100ms
+
+
+section Random autonomous events
+
+every random 2s..5s:
+  play random [C4 D4 E4 G4 A4] velocity 25..55 for 140ms
+
+###
+
+section Sections and musical form
+#A piece can contain several independent behavioural worlds:
+
+section Solo:
+  when note C7:
+    go to section Tremolo
+
+section Tremolo:
+  when chord played notes 3..6:
+    remember chord as harmony
+
+  while harmony exists every 70ms:
+    play random note from harmony velocity 20..40 for 50ms
+
+  when note C1:
+    go to section Solo
+
+#######
+
+section Absolute notes
+play C5
+
+section Chords
+play [C4 E4 G4]
+
+section Relative notes
+
+when any note:
+  play +4
+
+section Velocity
+
+play C5 velocity 60
+#play +7 velocity input
+#play +7 velocity input*0.5
+#play C5 velocity 30..70
+
+section Delay and duration
+
+play +12 after 300ms for 120ms
+
+section Repetition
+
+play +4 repeat 8 every 300ms for 90ms
+
+section Acceleration and deceleration
+
+play +4 repeat 9 every 420ms accelerate 0.84 for 90ms
+
+#####
+
+section Output channel
+
+play C5 channel 2
+
+#####
+
+section Remember a chord
+
+when chord played notes 3..6 within 170ms:
+  remember chord as harmony
+#A later chord replaces the memory if the same name is used again.
+
+#Equivalent wording is available:
+# replace harmony with chord
+
+###
+
