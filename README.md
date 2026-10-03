@@ -88,7 +88,7 @@ During performance, you can also **click anywhere inside an inactive section in 
 A URL such as:
 
 ```text
-https://muk-research.github.io/PianoRules/?ruleset=Prepared
+https://muk-labs.github.io/PianoRules/?ruleset=Prepared
 ```
 
 loads:
@@ -128,7 +128,7 @@ GitHub Pages supplies HTTPS, which Web MIDI requires.
 
 `examples/Harmonic-Machines-study.rules` is an original multi-section study demonstrating harmonic reservoirs, morphing clouds, chord-derived ostinati, phrase loops, and delayed canons. It is meant as a starting point to edit, not as a transcription of any other artist's code.
 
-## [Documentation](https://muk-research.github.io/PianoRules/docs/)
+## [Documentation](https://muk-labs.github.io/PianoRules/docs/)
 
 The full performer-facing musical grammar is in [`docs/README.md`](docs/README.md). On GitHub Pages it is also available as the formatted `/docs/` page.
 
@@ -144,6 +144,42 @@ It includes dedicated setup instructions for:
 The toolbar's **Files** button opens the communal Google Drive folder:
 
 <https://drive.google.com/drive/folders/13X9AR03kODoQFeSk52oS9WSVNPSqHkpw?usp=sharing>
+
+## MIDI monitor and debug mode
+
+The incoming MIDI log is quiet by default. Repetitive **Active Sensing** (`0xFE`),
+**MIDI Clock** (`0xF8`), MIDI time-code quarter frames and reserved system messages
+are hidden. Notes, note releases, pedals/CC, pressure, program changes and pitch
+bend remain visible. Transport messages (Start/Continue/Stop) and System Reset
+also remain visible, with readable names.
+
+Use `?debug=1` to include housekeeping messages and raw hexadecimal bytes:
+
+```text
+https://muk-labs.github.io/PianoRules/?debug=1
+https://muk-labs.github.io/PianoRules/?ruleset=Prepared&debug=1
+```
+
+Use `?debug=0`, or omit `debug`, for the normal view. Only the exact value `1`
+enables debug; it is not saved in browser preferences. Reload after changing
+this URL parameter. Debug mode changes **input logging only**, not the score,
+MIDI output, echo guard or timing. System messages have no channel, so their
+debug display is independent of the selected input channel (but still uses
+only the selected input devices). Empty/malformed channel messages cannot
+trigger notes; malformed non-empty messages are shown only in debug mode.
+
+For example, the Disklavier's single-byte heartbeat is displayed as
+`Active Sensing [FE]`, not `0xfe undefined 0`. This is not MIDI Clock.
+See the MIDI Association's [status-byte table](https://midi.org/expanded-midi-1-0-messages-list)
+and [message summary](https://midi.org/summary-of-midi-1-0-messages).
+Debug does not request additional System Exclusive permissions or implement
+external clock synchronization/Active Sensing connection supervision.
+
+Regression tests (Node.js 18+; no dependencies):
+
+```sh
+node --test tests/midi-monitor.test.mjs
+```
 
 ## Browser notes
 

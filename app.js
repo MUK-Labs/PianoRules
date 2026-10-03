@@ -56,7 +56,44 @@ function isLikelyEcho(note,channel,phase='on'){if(!$('#echoGuard').checked)retur
 function captureInputNote(note,velocity,channel,now){const rec={note,velocity,channel,time:now,offset:0,duration:180,offTime:null};state.inputHistory.push(rec);if(state.inputHistory.length>2048)state.inputHistory.splice(0,state.inputHistory.length-2048);const key=`${channel}:${note}`,stack=state.openInputNotes.get(key)||[];stack.push(rec);state.openInputNotes.set(key,stack);return rec;}
 function releaseCapturedInput(note,channel,now){const key=`${channel}:${note}`,stack=state.openInputNotes.get(key);if(!stack?.length)return;const rec=stack.shift();rec.offTime=now;rec.duration=Math.max(10,now-rec.time);if(!stack.length)state.openInputNotes.delete(key);}
 
-function handleMidi(event,port){const[status,d1,d2=0]=event.data,type=status&0xf0,channel=(status&0x0f)+1;if(state.inputChannel!=='all'&&Number(state.inputChannel)!==channel)return;if(type===0x90&&d2>0){const echo=isLikelyEcho(d1,channel,'on');$('#inputHero').textContent=midiToNoteName(d1);$('#inputVelocity').textContent=`velocity ${d2} · ch ${channel}`;log(inputLog,`${midiToNoteName(d1)}  vel ${d2}  ch ${channel}${echo?'  [echo ignored]':''}`);if(echo)return;const now=performance.now(),ctx=captureInputNote(d1,d2,channel,now);state.heldInputs.set(`${channel}:${d1}`,ctx);setHeld();if(state.running){processNote(ctx);refreshWhileRules(ctx);}}else if(type===0x80||(type===0x90&&d2===0)){const echo=isLikelyEcho(d1,channel,'off');log(inputLog,`${midiToNoteName(d1)} off  ch ${channel}${echo?'  [echo ignored]':''}`);if(echo)return;const now=performance.now();releaseCapturedInput(d1,channel,now);state.heldInputs.delete(`${channel}:${d1}`);setHeld();if(state.running)refreshWhileRules();}else if(type===0xb0)log(inputLog,`CC ${d1} = ${d2}  ch ${channel}`);else log(inputLog,`0x${status.toString(16)} ${d1} ${d2}`);}
+// MIDI system messages have no channel and may contain only a status byte.
+// Keep repetitive housekeeping out of the performance log unless ?debug=1.
+const MIDI_DEBUG=new URLSearchParams(window.location.search).get('debug')==='1';
+const MIDI_SYSTEM_NAMES={
+  0xf0:'System Exclusive',0xf1:'MIDI Time Code Quarter Frame',
+  0xf2:'Song Position Pointer',0xf3:'Song Select',
+  0xf4:'Reserved system message',0xf5:'Reserved system message',
+  0xf6:'Tune Request',0xf7:'End of System Exclusive',
+  0xf8:'MIDI Clock',0xf9:'Reserved real-time message',
+  0xfa:'Start',0xfb:'Continue',0xfc:'Stop',
+  0xfd:'Reserved real-time message',0xfe:'Active Sensing',0xff:'System Reset'
+};
+const MIDI_MONITOR_NOISE=new Set([0xf1,0xf4,0xf5,0xf8,0xf9,0xfd,0xfe]);
+function midiHex(data){return Array.from(data,b=>Number.isInteger(b)&&b>=0&&b<=255?b.toString(16).padStart(2,'0').toUpperCase():'??').join(' ');}
+function logMidiInput(data,text){log(inputLog,MIDI_DEBUG?`${text}  [${midiHex(data)}]`:text);}
+function handleMidi(event,port){
+  const data=event.data;
+  if(!data?.length)return;
+  const[status,d1,d2]=data;
+  if(!Number.isInteger(status)||status<0x80||status>0xff){
+    if(MIDI_DEBUG)log(inputLog,`Invalid MIDI message  [${midiHex(data)}]`);
+    return;
+  }
+  if(status>=0xf0){
+    // Transport/reset events remain visible; sensing/clock/reserved traffic
+    // is debug-only. None of these messages enters the musical rule engine.
+    if(MIDI_DEBUG||!MIDI_MONITOR_NOISE.has(status))
+      log(inputLog,`${MIDI_SYSTEM_NAMES[status]}  [${midiHex(data)}]`);
+    return;
+  }
+  const type=status&0xf0,channel=(status&0x0f)+1;
+  const expectedLength=(type===0xc0||type===0xd0)?2:3;
+  if(data.length!==expectedLength||Array.from(data).slice(1).some(b=>!Number.isInteger(b)||b<0||b>127)){
+    if(MIDI_DEBUG)log(inputLog,`Invalid/incomplete MIDI message  [${midiHex(data)}]`);
+    return;
+  }
+if(state.inputChannel!=='all'&&Number(state.inputChannel)!==channel)return;if(type===0x90&&d2>0){const echo=isLikelyEcho(d1,channel,'on');$('#inputHero').textContent=midiToNoteName(d1);$('#inputVelocity').textContent=`velocity ${d2} · ch ${channel}`;logMidiInput(data,`${midiToNoteName(d1)}  vel ${d2}  ch ${channel}${echo?'  [echo ignored]':''}`);if(echo)return;const now=performance.now(),ctx=captureInputNote(d1,d2,channel,now);state.heldInputs.set(`${channel}:${d1}`,ctx);setHeld();if(state.running){processNote(ctx);refreshWhileRules(ctx);}}else if(type===0x80||(type===0x90&&d2===0)){const echo=isLikelyEcho(d1,channel,'off');logMidiInput(data,`${midiToNoteName(d1)} off  ch ${channel}${echo?'  [echo ignored]':''}`);if(echo)return;const now=performance.now();releaseCapturedInput(d1,channel,now);state.heldInputs.delete(`${channel}:${d1}`);setHeld();if(state.running)refreshWhileRules();}else if(type===0xb0)logMidiInput(data,`CC ${d1} = ${d2}  ch ${channel}`);else if(type===0xa0)logMidiInput(data,`Polyphonic pressure ${midiToNoteName(d1)} = ${d2}  ch ${channel}`);else if(type===0xc0)logMidiInput(data,`Program Change ${d1}  ch ${channel}`);else if(type===0xd0)logMidiInput(data,`Channel pressure ${d1}  ch ${channel}`);else if(type===0xe0)logMidiInput(data,`Pitch Bend ${(d2<<7)|d1}  ch ${channel}`);
+}
 
 function processNote(ctx){const{note,velocity,channel,time:now}=ctx;for(const rule of state.rules){const tr=rule.trigger;if(tr.kind==='note'&&(tr.any||tr.note===note)&&velocityMatches(tr.velocity,velocity))fireRule(rule,ctx);if(tr.kind==='chord'){const recent=state.inputHistory.filter(x=>now-x.time<=tr.within),found=tr.notes.map(n=>[...recent].reverse().find(x=>x.note===n));if(found.every(Boolean)&&found.every(x=>velocityMatches(tr.velocity,x.velocity))){const last=state.chordFire.get(rule.id)||0;if(now-last>tr.within){state.chordFire.set(rule.id,now);fireRule(rule,{...ctx,chord:found});}}}if(tr.kind==='chordPlayed')queueChordCapture(rule,ctx);if(tr.kind==='phraseEnd')queuePhraseEnd(rule,ctx);}}
 function queueChordCapture(rule,ctx){const tr=rule.trigger,key=rule.id;let cap=state.chordCaptures.get(key);if(!cap||ctx.time-cap.lastTime>tr.within)cap={events:[],lastTime:ctx.time,timer:null};cap.events.push(ctx);cap.lastTime=ctx.time;if(cap.timer){clearTimeout(cap.timer);state.timers.delete(cap.timer);}const generation=state.engineGeneration;cap.timer=schedule(()=>{const latest=cap.lastTime,uniq=new Map();for(const e of cap.events.filter(x=>latest-x.time<=tr.within))uniq.set(e.note,e);const chord=[...uniq.values()].sort((a,b)=>a.note-b.note);state.chordCaptures.delete(key);if(chord.length>=tr.minNotes&&chord.length<=tr.maxNotes&&chord.every(e=>velocityMatches(tr.velocity,e.velocity))){const last=chord[chord.length-1];fireRule(rule,{...last,chord},generation);}},tr.within,generation);state.chordCaptures.set(key,cap);}
