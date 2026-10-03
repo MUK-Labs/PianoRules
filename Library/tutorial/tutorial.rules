@@ -1,58 +1,73 @@
 # Tutorial examples
-assets from "./assets/"
+# Run the rules, then click an inactive section to try that example.
+# Only one section runs at a time. Changing section clears musical memory.
+# Capture-only examples update the memory display without generating notes.
+# Use Panic to stop everything; release held keys before trying a new section.
+# The file examples at the end are optional and commented out by default.
+# assets from "./assets/"
 
 
-section Any note
+section Any note:
 
   when any note:
     play +12
 
 
-section A specific note
+section A specific note:
 
   when note C4:
     play G4
 
-section Dynamics as a trigger
+
+section Dynamics as a trigger:
 
   when any note velocity 90..127:
     play +7 velocity 40
 
 
-section A specific chord
+section A specific chord:
 
   when chord [C4 E4 G4] within 180ms:
     play [D5 F#5 A5] velocity 60
 
 
-section Any newly played chord
+section Any newly played chord:
+  # Play 3-6 notes close together; watch the harmony memory display.
 
   when chord played notes 3..6 within 170ms:
     remember chord as harmony
 
-section Phrase endings
+
+section Phrase endings:
+  # Play a short phrase, release the keys, then wait 900ms.
+  # The current detector measures the gap since the last note-on.
+  # This example stores the phrase; it does not play it back yet.
 
   when phrase ends after 900ms:
     remember phrase as melody
 
-####
 
-section While a note is held
+# States: something continues while a condition remains true.
+
+section While a note is held:
 
   while note C4 down every 180ms:
     play +7 velocity input*0.6 for 80ms
 
-section While any note is held
+
+section While any note is held:
 
   while any note down every 120ms:
     play +12 velocity input*0.45 for 60ms
 
+  # Alternative: replace the rule above with this velocity-gated version.
   # while any note down velocity 90..127 every 100ms:
-    # play -12 velocity 35 for 50ms
+  #   play -12 velocity 35 for 50ms
 
 
+section While a sequence is playing:
+  # Play D4. The lower layer lasts only as long as the answer sequence.
 
-section While a sequence is playing
   sequence answer:
     play +12 for 160ms
     wait 200ms
@@ -65,40 +80,53 @@ section While a sequence is playing
     play -12 velocity 35 for 80ms
 
 
-section While musical memory exists
+section While musical memory exists:
+  # Play a chord HERE: memory from earlier sections has been cleared.
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
 
   while harmony exists every 80ms:
     play random note from harmony velocity 20..40 for 60ms
 
-# while harmony exists every random 700ms..1.8s:
-#  play random note from harmony octave +2 velocity 18..34 for 420ms
+  # Alternative timing and register:
+  # while harmony exists every random 700ms..1.8s:
+  #   play random note from harmony octave +2 velocity 18..34 for 420ms
 
-#####
 
-section After the beginning of a section
+# Autonomous timing.
+
+section After the beginning of a section:
+  # Wait eight seconds after entering this section.
 
   after start 8s:
     play [C3 G3 C4] velocity 48 for 700ms
 
 
-section Regular autonomous events
+section Regular autonomous events:
 
   every 3s:
     play C5 velocity 40 for 100ms
 
 
-section Random autonomous events
+section Random autonomous events:
 
   every random 2s..5s:
     play random [C4 D4 E4 G4 A4] velocity 25..55 for 140ms
 
-### Sections and musical form
+
+# Sections and musical form.
 
 section Solo:
+  # C7 enters Tremolo; no machine notes are generated in Solo.
+
   when note C7:
     go to section Tremolo
 
+
 section Tremolo:
+  # After entering, play a fresh chord. C1 returns to Solo.
+
   when chord played notes 3..6:
     remember chord as harmony
 
@@ -108,121 +136,216 @@ section Tremolo:
   when note C1:
     go to section Solo
 
-#######
 
-section Absolute notes
-  play C5
+# Actions: each action needs a trigger or a named sequence above it.
 
-section Chords
-  play [C4 E4 G4]
+section Absolute notes:
 
-section Relative notes
+  when any note:
+    play C5
+
+
+section Chords:
+
+  when any note:
+    play [C4 E4 G4]
+
+
+section Relative notes:
+  # +4 means four semitones above the note you play.
 
   when any note:
     play +4
 
-section Velocity
 
-  play C5 velocity 60
-  #play +7 velocity input
-  #play +7 velocity input*0.5
-  #play C5 velocity 30..70
+section Velocity:
 
-section Delay and duration
+  when any note:
+    play C5 velocity 60
+    # Alternatives: replace the play line above with one of these.
+    # play +7 velocity input
+    # play +7 velocity input*0.5
+    # play C5 velocity 30..70
 
-  play +12 after 300ms for 120ms
 
-section Repetition
+section Delay and duration:
 
-  play +4 repeat 8 every 300ms for 90ms
+  when any note:
+    play +12 after 300ms for 120ms
 
-section Acceleration and deceleration
 
-  play +4 repeat 9 every 420ms accelerate 0.84 for 90ms
+section Repetition:
 
-#####
+  when any note:
+    play +4 repeat 8 every 300ms for 90ms
 
-section Output channel
 
-  play C5 channel 2
+section Acceleration and deceleration:
+  # Below 1 accelerates; try 1.15 instead of 0.84 to slow down.
 
-#####
+  when any note:
+    play +4 repeat 9 every 420ms accelerate 0.84 for 90ms
 
-section Remember a chord
+
+section Output channel:
+  # The receiving instrument must listen on channel 2 for this example.
+
+  when any note:
+    play C5 channel 2
+
+
+# Musical memory.
+
+section Remember a chord:
+  # A later chord replaces the memory with the same name.
+  # Watch the memory display; this example generates no notes.
 
   when chord played notes 3..6 within 170ms:
     remember chord as harmony
-  #A later chord replaces the memory if the same name is used again.
+    # Equivalent replacement wording:
+    # replace harmony with chord
 
-  # Equivalent wording is available:
-  # replace harmony with chord
 
-###
-
-section Morph from one harmony to the next
+section Morph from one harmony to the next:
+  # The first chord creates harmony; later chords gradually change it.
+  # The repeating layer makes the change audible.
 
   when chord played notes 3..6 within 170ms:
     morph harmony to chord over 2s
 
-section Clear a memory
-  clear harmony
+  while harmony exists every 70ms:
+    play random note from harmony velocity 15..35 for 50ms
 
-section Remember the last notes
+
+section Clear a memory:
+  # Play a chord to begin; tap C1 separately to clear harmony and stop it.
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
+  while harmony exists every 80ms:
+    play random note from harmony velocity 20..40 for 60ms
+
+  when note C1:
+    clear harmony
+
+
+section Remember the last notes:
+  # Play some notes, then C7; watch the motif memory display.
+  # The last eight input notes INCLUDE the triggering C7.
 
   when note C7:
     remember last 8 notes as motif
 
-######
 
-section Remember a phrase
+section Remember a phrase:
+  # Play a short phrase, release the keys, then wait 900ms.
+  # This example stores the phrase without replaying it.
+
   when phrase ends after 900ms:
     remember phrase as melody
 
 
-section Random chord tone
+section Random chord tone:
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
   while harmony exists every 70ms:
     play random note from harmony velocity 15..35 for 50ms
 
-section Random register displacement
+
+section Random register displacement:
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
   while harmony exists every 70ms:
     play random note from harmony octave random -2..+2 velocity 15..35 for 50ms
 
-section Fixed register displacement
-  play random note from harmony octave -2
 
-section Restrict the register
+section Fixed register displacement:
+  # Play a chord; its tones return two octaves lower.
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
+  while harmony exists every 700ms:
+    play random note from harmony octave -2
+
+
+section Restrict the register:
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
 
   while harmony exists every 120ms:
     play random note from harmony range C5..C7 velocity 18..36 for 90ms
-  # PianoRules preserves the pitch class of the selected chord tone and places it inside the requested range when possible.
 
-section Patterned ostinato from a chord
+  # Chord tones keep their pitch classes and are placed within C5-C7.
+
+
+section Patterned ostinato from a chord:
+  # Play exactly FOUR notes together to hear all four pattern positions.
+  # Positions refer to the remembered pitches in ascending order.
+
+  when chord played notes 4..4 within 170ms:
+    remember chord as harmony
+
   while harmony exists every 190ms:
     play next note from harmony pattern [1 3 2 4 3 2] octave -1 velocity 38 for 100ms
-    # The numbers refer to the stored chord tones in ascending order. For a four-note harmony, 1 3 2 4 means first chord tone, third, second, fourth.
 
-### 9. Captured material: replay, retrograde and looping
 
-section Replay remembered material
-  play remembered melody
+# Captured material: capture and replay happen in the SAME section.
+# For each example, play a short phrase, release the keys, then wait 900ms.
 
-section Transposition
-  play remembered melody transpose +12
+section Replay remembered material:
 
-section Backwards
-  play remembered melody backwards
+  when phrase ends after 900ms:
+    remember phrase as melody
+    play remembered melody
 
-section Combine transformations
-  play remembered melody backwards transpose +12 velocity *0.45 timing *1.15
 
-section Loop captured material
-  loop remembered phrase1 every 4s
-  #loop remembered phrase1 every 4s velocity *0.55 timing * random 0.9..1.1
+section Transposition:
 
-#If every ... is omitted, PianoRules begins the next repetition after the remembered material has finished.
+  when phrase ends after 900ms:
+    remember phrase as melody
+    play remembered melody transpose +12
 
-section Named sequences
-# Sequences are reusable blocks of actions:
+
+section Backwards:
+
+  when phrase ends after 900ms:
+    remember phrase as melody
+    play remembered melody backwards
+
+
+section Combine transformations:
+
+  when phrase ends after 900ms:
+    remember phrase as melody
+    play remembered melody backwards transpose +12 velocity *0.45 timing *1.15
+
+
+section Loop captured material:
+  # Play a phrase shorter than four seconds; release and pause to capture it.
+  # The loop begins on the first capture. Later captures update its material
+  # without launching another loop. Change section or press Panic to stop.
+
+  when phrase ends after 900ms:
+    remember phrase as phrase1
+
+  while phrase1 exists:
+    loop remembered phrase1 every 4s
+    # Alternative: replace the loop above with this transformed version.
+    # loop remembered phrase1 every 4s velocity *0.55 timing * random 0.9..1.1
+
+  # Without "every 4s", the next cycle follows the material's own duration.
+
+
+section Named sequences:
+  # Sequences are local to a section, so "answer" can be used again here.
+  # Play D4 to hear this three-note answer.
 
   sequence answer:
     play +12 velocity input*0.8 for 130ms
@@ -235,12 +358,25 @@ section Named sequences
     play sequence answer
 
 
-section MIDI and audio files
-  when note F4:
-    play midi "gesture.mid"
+section MIDI and audio files:
+  # OPTIONAL: this section is silent until you supply the example files.
+  # The loader preloads files from ALL sections, even inactive ones.
+  # Missing files would otherwise prevent the entire tutorial from running.
+  #
+  # For the hosted tutorial, add these files to Library/tutorial/assets/:
+  #   gesture.mid
+  #   resonance.wav
+  # Then uncomment "assets from" at the top and BOTH rules below.
+  #
+  # For browser-local assets instead, open the app WITHOUT ?ruleset=...,
+  # paste this script, leave "assets from" commented out, drop the two files
+  # into the asset area, and then uncomment the two rules below.
 
-when note G4:
-  play sound "resonance.wav"
-  # Files can be dropped onto PianoRules and stored locally in the browser.
+  # when note F4:
+  #   play midi "gesture.mid"
 
-### Check the docs for more info: https://muk-labs.github.io/PianoRules/docs/
+  # when note G4:
+  #   play sound "resonance.wav"
+
+
+# Check the docs for more info: https://muk-labs.github.io/PianoRules/docs/
