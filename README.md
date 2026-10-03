@@ -1,4 +1,4 @@
-# [PianoRules](https://muk-research.github.io/PianoRules/)
+# [PianoRules](https://muk-labs.github.io/PianoRules/)
 
 PianoRules is a static, browser-based MIDI rule engine for interactive piano performance, algorithmic composition, improvisation and teaching. It is designed for GitHub Pages and does not require a server.
 
@@ -160,4 +160,4 @@ Start with modest velocities and density. Leave the MIDI feedback guard enabled 
 
 PianoRules was conceived and developed by **Adrián Artacho**, composer, researcher and educator at the [Music and Arts University of the City of Vienna (MUK)](https://muk.ac.at/studienangebot/lehrende/details/adrian-artacho.html).
 
-## 📝 [To-Do](https://trello.com/c/vRaARLms/76-oliver-potratz-tepferism-pianorules)
+## 📝 [To-Do](https://trello.com/c/FkmRScNz/104-pianorules)
