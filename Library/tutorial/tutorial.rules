@@ -243,3 +243,5 @@ when note F4:
 when note G4:
   play sound "resonance.wav"
 #Files can be dropped onto PianoRules and stored locally in the browser.
+
+### Check the docs for more info: https://muk-labs.github.io/PianoRules/docs/
