@@ -162,3 +162,84 @@ when chord played notes 3..6 within 170ms:
 
 ###
 
+section Morph from one harmony to the next
+
+when chord played notes 3..6 within 170ms:
+  morph harmony to chord over 2s
+
+section Clear a memory
+clear harmony
+
+section Remember the last notes
+
+when note C7:
+  remember last 8 notes as motif
+
+######
+
+section Remember a phrase
+when phrase ends after 900ms:
+  remember phrase as melody
+
+
+section Random chord tone
+while harmony exists every 70ms:
+  play random note from harmony velocity 15..35 for 50ms
+
+section Random register displacement
+while harmony exists every 70ms:
+  play random note from harmony octave random -2..+2 velocity 15..35 for 50ms
+
+section Fixed register displacement
+play random note from harmony octave -2
+#Restrict the register
+while harmony exists every 120ms:
+  play random note from harmony range C5..C7 velocity 18..36 for 90ms
+#PianoRules preserves the pitch class of the selected chord tone and places it inside the requested range when possible.
+
+section Patterned ostinato from a chord
+while harmony exists every 190ms:
+  play next note from harmony pattern [1 3 2 4 3 2] octave -1 velocity 38 for 100ms
+#The numbers refer to the stored chord tones in ascending order. For a four-note harmony, 1 3 2 4 means first chord tone, third, second, fourth.
+
+### 9. Captured material: replay, retrograde and looping
+
+section Replay remembered material
+play remembered melody
+
+section Transposition
+play remembered melody transpose +12
+
+section Backwards
+play remembered melody backwards
+
+section Combine transformations
+play remembered melody backwards transpose +12 velocity *0.45 timing *1.15
+
+section Loop captured material
+loop remembered phrase1 every 4s
+#loop remembered phrase1 every 4s velocity *0.55 timing * random 0.9..1.1
+
+#If every ... is omitted, PianoRules begins the next repetition after the remembered material has finished.
+
+section Named sequences
+# Sequences are reusable blocks of actions:
+
+sequence answer:
+  play +12 velocity input*0.8 for 130ms
+  wait 160ms
+  play +7 velocity input*0.7 for 130ms
+  wait 160ms
+  play +3 velocity input*0.6 for 180ms
+
+when note D4:
+  play sequence answer
+
+
+section MIDI and audio files
+when note F4:
+  play midi "gesture.mid"
+
+when note G4:
+  play sound "resonance.wav"
+#Files can be dropped onto PianoRules and stored locally in the browser.
