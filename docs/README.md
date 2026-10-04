@@ -554,9 +554,18 @@ The operating system's default General MIDI synthesizer is not consistently expo
 
 ---
 
+<div id="setup"></div>
+
 # 13. Using PianoRules with a Disklavier
 
 There are two common connection arrangements.
+
+<figure class="setup-diagram">
+  <a href="https://docs.google.com/drawings/d/10dKmDZOXFOA87uljbhqiqpM8oFLAOZ4iyeYUn3Q3u3M/export/png" target="_blank" rel="noopener noreferrer">
+    <img src="https://docs.google.com/drawings/d/10dKmDZOXFOA87uljbhqiqpM8oFLAOZ4iyeYUn3Q3u3M/export/png" alt="Cable diagram for connecting a computer to a Disklavier with a USB-MIDI interface." width="902" height="486" loading="lazy" />
+  </a>
+  <figcaption>USB-MIDI cable setup. Connect USB to your computer, MIDI OUT to the Disklavier’s MIDI IN, and MIDI IN to the Disklavier’s MIDI OUT. Click the diagram to view it at full size.</figcaption>
+</figure>
 
 ## USB MIDI
 
