@@ -6,6 +6,7 @@ function stripWrappingQuotes(value='') {
 function looksLikeUrl(value){return /^[a-z][a-z0-9+.-]*:\/\//i.test(value);}
 function repoPieceName(repo){return repo.replace(/^rules?[-_ ]+/i,'')||repo;}
 function encodedLibraryPath(name){const safe=String(name).trim();return `Library/${encodeURIComponent(safe)}/${encodeURIComponent(safe)}.rules`;}
+export const DEFAULT_RULESET='JazzLab';
 export function resolveRulesetCandidates(rawRef, appUrl=(typeof location!=='undefined'?location.href:'https://example.invalid/')) {
   const ref=stripWrappingQuotes(rawRef);
   if(!ref)throw new Error('The ruleset parameter is empty.');
@@ -59,4 +60,7 @@ export function resolveRulesetAssetUrl(source,{assetUrls=new Map(),assetBaseUrl=
   if(rulesBaseUrl)return new URL(source,new URL('assets/',rulesBaseUrl)).href;
   return '';
 }
-export function rulesetFromLocation(loc=(typeof location!=='undefined'?location:null)){if(!loc)return'';return new URLSearchParams(loc.search||'').get('ruleset')||'';}
+export function rulesetFromLocation(loc=(typeof location!=='undefined'?location:null)){
+  if(!loc)return DEFAULT_RULESET;
+  return new URLSearchParams(loc.search||'').get('ruleset')||DEFAULT_RULESET;
+}
