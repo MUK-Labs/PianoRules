@@ -1,0 +1,194 @@
+# JazzLab — a PianoRules demo for jazz pianists
+#
+# A collection of playable studies rather than a finished composition:
+# open voicings, responsive comping, chord-tone bass lines, polyrhythms,
+# side-slipping, ballad textures, phrase trading and looping.
+#
+# HOW TO NAVIGATE
+# - Click an inactive section in the editor to activate it.
+# - C8 advances to the next section.
+# - A0 returns to Open Voicings.
+#
+# Start with moderate dynamics and density on a physical Disklavier.
+# The first section is active by default.
+
+
+section Open Voicings:
+
+  # Soft notes receive a delayed fifth and octave.
+  when any note velocity 1..79:
+    play +7 velocity input*0.30 after 45ms for 230ms
+    play +12 velocity input*0.18 after 90ms for 300ms
+
+  # Stronger accents open downwards and add a minor seventh above.
+  when any note velocity 80..127:
+    play -12 velocity input*0.18 after 30ms for 210ms
+    play +10 velocity input*0.28 after 80ms for 260ms
+
+  when note C8:
+    go to section Ghost Comping
+
+
+section Ghost Comping:
+
+  # Play compact three- to six-note voicings.
+  # PianoRules answers with quiet registral shadows of the chord.
+  when chord played notes 3..6 within 160ms:
+    remember chord as harmony
+    play remembered harmony transpose +12 velocity *0.24 after 180ms
+    play remembered harmony transpose -12 velocity *0.16 after 620ms
+
+  # Sparse single-note comments keep the voicing alive.
+  while harmony exists every random 1.1s..2.4s:
+    play random note from harmony range C4..C7 velocity 18..34 for 120ms
+
+  when note C8:
+    go to section Bass and Comp
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Bass and Comp:
+
+  # 480ms is approximately a quarter note at 125 bpm.
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
+  # A chord-tone bass line follows the most recent voicing.
+  while harmony exists every 480ms:
+    play next note from harmony pattern [1 3 2 4 3 2] range A1..C3 velocity 38..52 for 190ms
+
+  # Independent upper-register comping.
+  while harmony exists every random 850ms..1.4s:
+    play random note from harmony range C4..C6 velocity 24..42 for 110ms
+
+  # Occasional full upper-structure reflection.
+  while harmony exists every random 2.6s..4.4s:
+    play remembered harmony transpose +12 velocity *0.16
+
+  when note C8:
+    go to section Three Against Four
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Three Against Four:
+
+  # Two pulse streams derive their pitches from the current chord.
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
+  # Quarter-note layer at roughly 120 bpm.
+  while harmony exists every 500ms:
+    play next note from harmony pattern [1 3 2 4] range C2..C4 velocity 32..44 for 170ms
+
+  # Triplet layer against it.
+  while harmony exists every 333ms:
+    play next note from harmony pattern [4 2 3 1] range C5..C7 velocity 18..31 for 90ms
+
+  when note C8:
+    go to section Side Slip
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Side Slip:
+
+  sequence slip and return:
+    play remembered harmony transpose +1 velocity *0.24
+    wait 280ms
+    play remembered harmony velocity *0.38
+
+  when chord played notes 3..6 within 170ms:
+    remember chord as harmony
+
+  # The current voicing occasionally moves a semitone away and resolves.
+  while harmony exists every random 3.2s..5.5s:
+    play sequence slip and return
+
+  # Strong melodic accents receive a brief tritone colour.
+  when any note velocity 105..127:
+    play +6 velocity input*0.22 after 90ms for 130ms
+
+  when note C8:
+    go to section Ballad Halo
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Ballad Halo:
+
+  # Slow-moving harmony with quiet registral reflections.
+  when chord played notes 3..6 within 220ms:
+    morph harmony to chord over 1.8s
+    play remembered harmony transpose +12 velocity *0.15 after 500ms
+    play remembered harmony transpose -12 velocity *0.10 after 1.4s
+
+  while harmony exists every random 1.8s..3.6s:
+    play random note from harmony range C6..C8 velocity 12..26 for 1.2s
+
+  when note C8:
+    go to section Trading Phrases
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Trading Phrases:
+
+  # Leave a short silence: the machine answers your phrase.
+  when phrase ends after 750ms:
+    remember phrase as line
+    play remembered line backwards transpose +7 velocity *0.38 timing *1.12 after 350ms
+    play remembered line transpose -12 velocity *0.22 timing *0.75 after 2.3s
+
+  when note C8:
+    go to section Loop Chorus
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Loop Chorus:
+
+  # A longer pause captures the most recent phrase as a repeating chorus.
+  when phrase ends after 1.1s:
+    remember phrase as chorus
+
+  # The loop starts once; later phrases replace its material.
+  while chorus exists:
+    loop remembered chorus every 8s velocity *0.30 timing * random 0.92..1.08
+
+  # The pitch collection of the captured phrase also feeds new comments.
+  while chorus exists every random 2.5s..4.5s:
+    play random note from chorus range C5..C7 velocity 16..30 for 160ms
+
+  when note C8:
+    go to section Altered Echoes
+
+  when note A0:
+    go to section Open Voicings
+
+
+section Altered Echoes:
+
+  # A restrained intervallic shadow for softer lines.
+  when any note velocity 1..74:
+    play +5 velocity input*0.22 after 180ms for 150ms
+    play +12 velocity input*0.13 after 420ms for 110ms
+
+  # Accents open into a tritone, minor ninth and distant lower echo.
+  when any note velocity 75..127:
+    play +6 velocity input*0.28 after 100ms for 130ms
+    play +13 velocity input*0.18 after 230ms for 170ms
+    play -11 velocity input*0.14 after 390ms for 210ms
+
+  when note C8:
+    go to section Open Voicings
+
+  when note A0:
+    go to section Open Voicings
